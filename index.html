@@ -369,7 +369,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div class="examiner-avatar">&#128100;</div>
         <div class="examiner-bubble">
           <div class="label">面接官</div>
-          これからカードをお渡しします。まず20秒間、黙読してください。
+          カードをわたします。まず、20秒で読んでください。
         </div>
       </div>
       <div class="passage-card" id="passageCardSilent">
@@ -386,7 +386,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div class="examiner-avatar">&#128100;</div>
         <div class="examiner-bubble">
           <div class="label">面接官</div>
-          それでは、黙読を始めてください。
+          よんでください。
         </div>
       </div>
       <div class="passage-card">
@@ -959,7 +959,7 @@ function startInterview() {
   document.getElementById('passageTitleSilent').textContent = s.passage.title;
   document.getElementById('passageTextSilent').textContent = s.passage.text;
   showScreen('screenCardHandout');
-  speakJA('これからカードをお渡しします。まず20秒間、黙読してください。');
+  speakJA('カードをわたします。まず、20秒で読んでください。');
 }
 
 function buildQAList() {
@@ -1292,7 +1292,7 @@ function retryInterview() {
   document.getElementById('passageTitleSilent').textContent = s.passage.title;
   document.getElementById('passageTextSilent').textContent = s.passage.text;
   showScreen('screenCardHandout');
-  speakJA('もう一度やってみましょう。カードをお渡しします。');
+  speakJA('もういちど、やってみましょう。');
 }
 
 function differentSet() {
@@ -1450,8 +1450,6 @@ function speak(text, forceLang) {
   speechSynthesis.cancel();
   ensureVoices();
 
-  const utter = new SpeechSynthesisUtterance(text);
-
   let lang;
   if (forceLang === 'en') {
     lang = 'en-US';
@@ -1462,14 +1460,28 @@ function speak(text, forceLang) {
     lang = hasJP ? 'ja-JP' : 'en-US';
   }
 
-  utter.lang = lang;
-  utter.rate = lang === 'ja-JP' ? 1.0 : 0.85;
-  utter.pitch = 1.0;
+  const voice = lang === 'ja-JP' ? _voiceCache.ja : _voiceCache.en;
+  const rate = lang === 'ja-JP' ? 0.88 : 0.85;
 
-  const cached = lang === 'ja-JP' ? _voiceCache.ja : _voiceCache.en;
-  if (cached) utter.voice = cached;
-
-  speechSynthesis.speak(utter);
+  if (lang === 'ja-JP') {
+    // 日本語は句読点・「。」で区切って1文ずつ読む（イントネーションが自然になる）
+    const chunks = text.split(/(?<=[。、．，！？\n])\s*/).filter(s => s.trim());
+    chunks.forEach((chunk, i) => {
+      const utter = new SpeechSynthesisUtterance(chunk.trim());
+      utter.lang = lang;
+      utter.rate = rate;
+      utter.pitch = 1.05;
+      if (voice) utter.voice = voice;
+      speechSynthesis.speak(utter);
+    });
+  } else {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.rate = rate;
+    utter.pitch = 1.0;
+    if (voice) utter.voice = voice;
+    speechSynthesis.speak(utter);
+  }
 }
 
 function speakEN(text) { speak(text, 'en'); }
