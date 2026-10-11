@@ -405,7 +405,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div class="examiner-avatar">&#128100;</div>
         <div class="examiner-bubble">
           <div class="label">面接官</div>
-          それでは、タイトルから声に出して読んでください。
+          Now, please read the passage aloud, starting from the title.
         </div>
       </div>
       <div class="passage-card">
@@ -958,7 +958,7 @@ function startInterview() {
   document.getElementById('passageTitleSilent').textContent = s.passage.title;
   document.getElementById('passageTextSilent').textContent = s.passage.text;
   showScreen('screenCardHandout');
-  speak('これからカードをお渡しします。まず20秒間、黙読してください。');
+  speakJA('これからカードをお渡しします。まず20秒間、黙読してください。');
 }
 
 function buildQAList() {
@@ -1070,7 +1070,7 @@ function goToReadAloud() {
 
   showScreen('screenReadAloud');
   renderStepIndicator('stepIndicator2');
-  speak('では、タイトルから声に出して読んでください。');
+  speakEN('Now, please read the passage aloud, starting from the title.');
 
   document.getElementById('speechStatusRead').textContent =
     state.speechSupported ? '🎤 マイクを押してから声に出して読もう' : '声に出して読み終わったら「音読を終了する」を押してね';
@@ -1161,7 +1161,7 @@ function showCurrentQuestion() {
   renderStepIndicator('stepIndicatorQA');
 
   // TTS
-  speak(qa.q);
+  speakEN(qa.q);
 }
 
 function submitAnswer() {
@@ -1291,7 +1291,7 @@ function retryInterview() {
   document.getElementById('passageTitleSilent').textContent = s.passage.title;
   document.getElementById('passageTextSilent').textContent = s.passage.text;
   showScreen('screenCardHandout');
-  speak('もう一度やってみましょう。カードをわたします。');
+  speakJA('もう一度やってみましょう。カードをお渡しします。');
 }
 
 function differentSet() {
@@ -1390,27 +1390,43 @@ function toggleSpeechQA() {
 // ============================================================
 // TEXT-TO-SPEECH
 // ============================================================
-function speak(text) {
+// 音声読み上げ。forceLang で言語を指定可能（'en' / 'ja'）
+function speak(text, forceLang) {
   if (!state.ttsSupported) return;
   speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
 
-  // Detect language
-  const isJapanese = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/.test(text);
-  utter.lang = isJapanese ? 'ja-JP' : 'en-US';
-  utter.rate = isJapanese ? 1.0 : 0.85;
+  let lang;
+  if (forceLang === 'en') {
+    lang = 'en-US';
+  } else if (forceLang === 'ja') {
+    lang = 'ja-JP';
+  } else {
+    // 自動判定
+    const hasJP = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/.test(text);
+    lang = hasJP ? 'ja-JP' : 'en-US';
+  }
+  utter.lang = lang;
+  utter.rate = lang === 'ja-JP' ? 1.0 : 0.85;
   utter.pitch = 1.0;
 
-  // Try to pick a good voice
   const voices = speechSynthesis.getVoices();
   if (voices.length > 0) {
-    const lang = utter.lang;
-    const preferred = voices.find(v => v.lang.startsWith(lang.split('-')[0]) && v.localService);
-    if (preferred) utter.voice = preferred;
+    const prefix = lang.split('-')[0];
+    // ローカル音声を優先（より自然な発音）
+    const local = voices.find(v => v.lang.startsWith(prefix) && v.localService);
+    const any = voices.find(v => v.lang.startsWith(prefix));
+    if (local) utter.voice = local;
+    else if (any) utter.voice = any;
   }
 
   speechSynthesis.speak(utter);
 }
+
+// 英語で読み上げ（面接官の質問用）
+function speakEN(text) { speak(text, 'en'); }
+// 日本語で読み上げ（面接官の指示用）
+function speakJA(text) { speak(text, 'ja'); }
 
 // ============================================================
 // STEP INDICATOR
