@@ -1399,20 +1399,19 @@ function pickVoice(lang) {
   if (!voices.length) return null;
 
   if (lang === 'ja-JP') {
-    // macOS / iOS の高品質日本語音声を優先
-    const preferred = ['O-Ren', 'Kyoko', 'Otoya', 'Hattori'];
+    // Google音声を最優先（Chrome で利用可能、最も自然）
+    const preferred = ['Google 日本語', 'Google Japanese', 'O-Ren', 'Kyoko', 'Otoya', 'Hattori'];
     for (const name of preferred) {
       const v = voices.find(v => v.name.includes(name));
       if (v) return v;
     }
-    // 名前で見つからなければ lang=ja-JP で探す
     return voices.find(v => v.lang === 'ja-JP')
         || voices.find(v => v.lang.startsWith('ja'))
         || null;
   }
 
-  // 英語
-  const preferred = ['Samantha', 'Daniel', 'Karen', 'Alex'];
+  // 英語: Google音声を最優先
+  const preferred = ['Google US English', 'Google UK English Female', 'Samantha', 'Daniel', 'Karen', 'Alex'];
   for (const name of preferred) {
     const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
     if (v) return v;
