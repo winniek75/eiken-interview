@@ -1460,7 +1460,7 @@ function speak(text, forceLang) {
   }
 
   const voice = lang === 'ja-JP' ? _voiceCache.ja : _voiceCache.en;
-  const rate = lang === 'ja-JP' ? 0.88 : 0.85;
+  const rate = lang === 'ja-JP' ? 0.78 : 0.8;
 
   if (lang === 'ja-JP') {
     // 日本語は句読点・「。」で区切って1文ずつ読む（イントネーションが自然になる）
