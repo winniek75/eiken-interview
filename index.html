@@ -323,8 +323,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
     <div class="screen active" id="screenHome">
       <div class="home-hero">
         <span class="icon">&#127908;</span>
-        <h2>面接シミュレーター</h2>
-        <p>英検二次試験の面接練習ができます</p>
+        <h2>英検 面接シミュレーター</h2>
+        <p>二次試験の面接を、本番と同じ流れで練習しよう</p>
       </div>
 
       <div class="grade-selector">
@@ -368,14 +368,14 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div class="examiner-avatar">&#128100;</div>
         <div class="examiner-bubble">
           <div class="label">面接官</div>
-          これからカードをわたしますので、まず黙読してください。時間は20秒です。
+          これからカードをお渡しします。まず20秒間、黙読してください。
         </div>
       </div>
       <div class="passage-card" id="passageCardSilent">
         <div class="passage-title" id="passageTitleSilent"></div>
         <div class="passage-text" id="passageTextSilent"></div>
       </div>
-      <button class="btn btn-primary btn-full btn-lg" onclick="startSilentReading()">カードを受け取る</button>
+      <button class="btn btn-primary btn-full btn-lg" onclick="startSilentReading()">カードを受け取って黙読を始める</button>
     </div>
 
     <!-- SILENT READING -->
@@ -385,7 +385,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div class="examiner-avatar">&#128100;</div>
         <div class="examiner-bubble">
           <div class="label">面接官</div>
-          黙読してください。（20秒）
+          それでは、黙読を始めてください。
         </div>
       </div>
       <div class="passage-card">
@@ -394,7 +394,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
       </div>
       <div class="timer-display">
         <div class="timer-circle" id="timerCircle"><span id="timerValue">20</span></div>
-        <div class="timer-label">黙読時間</div>
+        <div class="timer-label">残り時間</div>
       </div>
     </div>
 
@@ -405,7 +405,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div class="examiner-avatar">&#128100;</div>
         <div class="examiner-bubble">
           <div class="label">面接官</div>
-          では、タイトルから声に出して読んでください。
+          それでは、タイトルから声に出して読んでください。
         </div>
       </div>
       <div class="passage-card">
@@ -416,8 +416,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div style="display:flex;align-items:center;justify-content:center;gap:16px">
           <button class="btn-mic" id="btnMicRead" onclick="toggleSpeechRead()">&#127908;</button>
         </div>
-        <div class="speech-status" id="speechStatusRead">マイクボタンを押して音読しよう</div>
-        <button class="btn btn-secondary btn-full" id="btnReadDone" onclick="finishReadAloud()">読み終わった</button>
+        <div class="speech-status" id="speechStatusRead">🎤 マイクを押してから声に出して読もう</div>
+        <button class="btn btn-secondary btn-full" id="btnReadDone" onclick="finishReadAloud()">音読を終了する</button>
       </div>
     </div>
 
@@ -442,11 +442,11 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <div class="passage-text" id="passageTextRef"></div>
       </div>
       <div class="answer-area" id="answerAreaQA">
-        <textarea class="answer-textarea" id="answerInput" placeholder="ここに回答を入力...（音声入力も使えます）"></textarea>
+        <textarea class="answer-textarea" id="answerInput" placeholder="回答を英語で入力（🎤マイクで音声入力もできます）"></textarea>
         <div class="answer-actions">
           <button class="btn-mic" id="btnMicQA" onclick="toggleSpeechQA()" style="width:44px;height:44px;font-size:1.2rem">&#127908;</button>
-          <button class="btn btn-primary" style="flex:1" onclick="submitAnswer()">回答する</button>
-          <button class="btn btn-secondary" onclick="showModelAnswer()">こたえを見る</button>
+          <button class="btn btn-primary" style="flex:1" onclick="submitAnswer()">この回答で決定</button>
+          <button class="btn btn-secondary" onclick="showModelAnswer()">模範解答を見る</button>
         </div>
         <div class="speech-status" id="speechStatusQA"></div>
       </div>
@@ -458,8 +458,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
           <div class="tips" id="modelAnswerTips"></div>
         </div>
         <div class="self-assess">
-          <button class="btn btn-accent" onclick="selfAssess('good')">&#9734; うまく言えた</button>
-          <button class="btn btn-warn" onclick="selfAssess('ok')">&#9825; もう少し</button>
+          <button class="btn btn-accent" onclick="selfAssess('good')">⭐ うまく答えられた</button>
+          <button class="btn btn-warn" onclick="selfAssess('ok')">💪 次はもっとうまく言える</button>
         </div>
       </div>
     </div>
@@ -467,7 +467,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
     <!-- RESULT SCREEN -->
     <div class="screen" id="screenResult">
       <div class="result-card">
-        <h2>面接練習おつかれさまでした！</h2>
+        <h2>お疲れさまでした！</h2>
         <div class="subtitle" id="resultGradeLabel"></div>
         <div class="big-stars" id="resultStars"></div>
         <div class="subtitle" id="resultScore"></div>
@@ -478,8 +478,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <ul id="resultTips"></ul>
       </div>
       <div class="result-actions">
-        <button class="btn btn-primary btn-lg" style="flex:1" onclick="retryInterview()">もう1回</button>
-        <button class="btn btn-secondary btn-lg" style="flex:1" onclick="differentSet()">べつの問題</button>
+        <button class="btn btn-primary btn-lg" style="flex:1" onclick="retryInterview()">同じ問題でもう1回</button>
+        <button class="btn btn-secondary btn-lg" style="flex:1" onclick="differentSet()">別の問題で練習する</button>
       </div>
       <button class="btn btn-secondary btn-full" onclick="goHome()">ホームに戻る</button>
     </div>
@@ -958,7 +958,7 @@ function startInterview() {
   document.getElementById('passageTitleSilent').textContent = s.passage.title;
   document.getElementById('passageTextSilent').textContent = s.passage.text;
   showScreen('screenCardHandout');
-  speak('これからカードをわたしますので、まず黙読してください。時間は20秒です。');
+  speak('これからカードをお渡しします。まず20秒間、黙読してください。');
 }
 
 function buildQAList() {
@@ -1073,7 +1073,7 @@ function goToReadAloud() {
   speak('では、タイトルから声に出して読んでください。');
 
   document.getElementById('speechStatusRead').textContent =
-    state.speechSupported ? 'マイクボタンを押して音読しよう' : '声に出して読んだら「読み終わった」を押そう';
+    state.speechSupported ? '🎤 マイクを押してから声に出して読もう' : '声に出して読み終わったら「音読を終了する」を押してね';
 }
 
 let readTranscript = '';
@@ -1222,7 +1222,7 @@ function showResults() {
 
   const starStr = '\u2605'.repeat(stars) + '\u2606'.repeat(5 - stars);
   document.getElementById('resultStars').textContent = starStr;
-  document.getElementById('resultScore').textContent = `${goodCount} / ${totalCount} セクション「うまく言えた」`;
+  document.getElementById('resultScore').textContent = `${totalCount}問中 ${goodCount}問「うまく答えられた」`;
 
   // Breakdown
   const breakdown = document.getElementById('resultBreakdown');
@@ -1258,7 +1258,7 @@ function generateTips() {
   if (grade === 3) {
     tips.push('音読はゆっくりはっきり読もう。タイトルも忘れずに。');
     if (hasOk) tips.push('答えるときは、主語 + 動詞のかたちを意識しよう。');
-    tips.push('個人質問は Yes/No + もう1文を心がけよう。');
+    tips.push('個人質問では Yes/No だけでなく、もう1文付け加えよう。');
     tips.push('わからないときは "Could you say that again?" と聞き返せるよ。');
   } else if (grade === 'p2') {
     tips.push('パッセージの音読は意味のかたまりで区切って読もう。');
@@ -1321,7 +1321,7 @@ function startRecognition(mode) {
       document.getElementById('speechStatusRead').className = 'speech-status active';
     } else {
       document.getElementById('answerInput').value = transcript;
-      document.getElementById('speechStatusQA').textContent = '音声認識中...';
+      document.getElementById('speechStatusQA').textContent = '🎤 聞き取り中…';
       document.getElementById('speechStatusQA').className = 'speech-status active';
     }
   };
@@ -1366,7 +1366,7 @@ function updateMicUI(mode, active) {
     btn.classList.toggle('recording', active);
     if (!active && status) {
       status.className = 'speech-status';
-      if (!readTranscript) status.textContent = 'マイクボタンを押して音読しよう';
+      if (!readTranscript) status.textContent = '🎤 マイクを押してから声に出して読もう';
     }
   } else {
     const btn = document.getElementById('btnMicQA');
