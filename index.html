@@ -325,6 +325,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appea
         <span class="icon">&#127908;</span>
         <h2>英検 面接シミュレーター</h2>
         <p>二次試験の面接を、本番と同じ流れで練習しよう</p>
+        <p id="debugVoice" style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:8px">v3 音声読込中...</p>
       </div>
 
       <div class="grade-selector">
@@ -1426,6 +1427,13 @@ function ensureVoices() {
   _voiceCache.ja = pickVoice('ja-JP');
   _voiceCache.en = pickVoice('en-US');
   _voiceCache.ready = true;
+  // デバッグ表示
+  const el = document.getElementById('debugVoice');
+  if (el) {
+    const jaName = _voiceCache.ja ? _voiceCache.ja.name + ' (' + _voiceCache.ja.lang + ')' : 'なし';
+    const enName = _voiceCache.en ? _voiceCache.en.name + ' (' + _voiceCache.en.lang + ')' : 'なし';
+    el.textContent = `v3 | JA: ${jaName} | EN: ${enName}`;
+  }
 }
 
 // 音声が遅延ロードされるブラウザ対応
