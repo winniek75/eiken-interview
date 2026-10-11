@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>英検面接シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#4a90b8;--primary-dark:#35708f;--primary-light:#e8f4f8;
+  --accent:#5cb85c;--accent-dark:#449d44;
+  --warn:#e8a945;--danger:#d9534f;
+  --bg:#f0f5f8;--card:#fff;--text:#2c3e50;--text-light:#6b7b8d;
+  --shadow:0 4px 20px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --radius:16px;--radius-sm:10px;
+}
+html{font-size:16px}
+body{
+  font-family:'Noto Sans JP','Nunito',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100dvh;overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;-webkit-appearance:none}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative}
+
+/* Header */
+.header{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:100;
+}
+.header h1{font-size:1.1rem;font-weight:700;flex:1}
+.header .badge{
+  background:rgba(255,255,255,.2);padding:4px 10px;border-radius:20px;
+  font-size:.75rem;font-weight:600;
+}
+.btn-home{
+  background:rgba(255,255,255,.15);border-radius:50%;width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;
+  transition:background .2s;
+}
+.btn-home:hover{background:rgba(255,255,255,.3)}
+
+/* Progress bar */
+.progress-bar{
+  height:4px;background:rgba(255,255,255,.2);position:relative;
+}
+.progress-bar .fill{
+  height:100%;background:#fff;transition:width .5s ease;border-radius:0 2px 2px 0;
+}
+
+/* Main content */
+.main{flex:1;padding:20px;display:flex;flex-direction:column;gap:16px}
+
+/* Screen transitions */
+.screen{display:none;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;gap:16px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Home screen */
+.home-hero{text-align:center;padding:30px 0 10px}
+.home-hero .icon{font-size:3.5rem;margin-bottom:12px;display:block}
+.home-hero h2{font-size:1.5rem;font-weight:700;margin-bottom:6px}
+.home-hero p{color:var(--text-light);font-size:.9rem}
+
+.grade-selector{display:flex;flex-direction:column;gap:10px}
+.grade-card{
+  background:var(--card);border-radius:var(--radius);padding:18px 20px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:var(--shadow);border:2px solid transparent;
+  transition:all .25s ease;position:relative;overflow:hidden;
+}
+.grade-card:hover,.grade-card.selected{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.grade-card.selected::after{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:var(--primary-light);opacity:.3;pointer-events:none;
+}
+.grade-card .grade-icon{
+  width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.grade-card .grade-icon.g3{background:linear-gradient(135deg,#5cb85c,#449d44)}
+.grade-card .grade-icon.gp2{background:linear-gradient(135deg,#e8a945,#d4942e)}
+.grade-card .grade-icon.g2{background:linear-gradient(135deg,#d9534f,#c9302c)}
+.grade-card .grade-info h3{font-size:1rem;font-weight:700}
+.grade-card .grade-info p{font-size:.78rem;color:var(--text-light);margin-top:2px}
+.grade-card .grade-sets{
+  margin-left:auto;font-size:.72rem;color:var(--text-light);
+  background:var(--bg);padding:4px 10px;border-radius:12px;white-space:nowrap;
+}
+
+.btn-start{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;font-size:1.1rem;font-weight:700;
+  padding:16px;border-radius:var(--radius);width:100%;
+  box-shadow:0 4px 16px rgba(74,144,184,.3);
+  transition:all .25s ease;
+}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(74,144,184,.4)}
+.btn-start:disabled{opacity:.5;pointer-events:none}
+
+.history-section{margin-top:8px}
+.history-section h3{font-size:.85rem;color:var(--text-light);margin-bottom:8px}
+.history-row{
+  background:var(--card);border-radius:var(--radius-sm);padding:12px 16px;
+  display:flex;align-items:center;gap:10px;font-size:.82rem;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+.history-row .stars{color:#f5c518;letter-spacing:2px}
+.history-row .date{color:var(--text-light);margin-left:auto;font-size:.72rem}
+
+/* Examiner bubble */
+.examiner{display:flex;gap:12px;align-items:flex-start;animation:slideUp .5s ease}
+.examiner-avatar{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.3rem;
+}
+.examiner-bubble{
+  background:var(--card);border-radius:4px var(--radius) var(--radius) var(--radius);
+  padding:14px 18px;box-shadow:var(--shadow);flex:1;
+  font-size:.92rem;line-height:1.7;
+}
+.examiner-bubble .label{font-size:.72rem;color:var(--primary);font-weight:600;margin-bottom:4px}
+
+/* Passage card */
+.passage-card{
+  background:var(--card);border-radius:var(--radius);padding:24px;
+  box-shadow:var(--shadow-lg);border:1px solid #e0e8ee;
+  position:relative;
+}
+.passage-card::before{
+  content:'EIKEN Card';position:absolute;top:10px;right:14px;
+  font-size:.65rem;color:var(--text-light);font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;
+}
+.passage-card .passage-title{
+  font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:700;
+  color:var(--primary-dark);margin-bottom:12px;padding-bottom:10px;
+  border-bottom:2px solid var(--primary-light);
+}
+.passage-card .passage-text{
+  font-family:'Nunito','Noto Sans JP',sans-serif;
+  font-size:1rem;line-height:1.9;color:var(--text);
+}
+.passage-card .passage-text .word{
+  display:inline;transition:background .3s,color .3s;padding:1px 2px;border-radius:3px;
+}
+.passage-card .passage-text .word.highlight{background:#c8e6c9;color:#2e7d32}
+.passage-card .passage-text .word.missed{background:#ffcdd2;color:#c62828;text-decoration:underline}
+
+/* Timer */
+.timer-display{
+  text-align:center;padding:16px;
+}
+.timer-circle{
+  width:100px;height:100px;border-radius:50%;margin:0 auto 10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.2rem;font-weight:700;color:var(--primary);
+  border:4px solid var(--primary-light);position:relative;
+  font-family:'Nunito',sans-serif;
+}
+.timer-circle.warning{color:var(--warn);border-color:#fff3cd}
+.timer-circle.danger{color:var(--danger);border-color:#f8d7da;animation:pulse .8s infinite}
+.timer-label{font-size:.82rem;color:var(--text-light)}
+
+/* Answer area */
+.answer-area{display:flex;flex-direction:column;gap:10px}
+.answer-textarea{
+  width:100%;min-height:80px;border:2px solid #e0e8ee;border-radius:var(--radius-sm);
+  padding:12px 16px;font-size:.95rem;font-family:inherit;resize:vertical;
+  transition:border-color .2s;line-height:1.6;
+}
+.answer-textarea:focus{border-color:var(--primary);outline:none}
+.answer-textarea::placeholder{color:#b0bec5}
+
+.answer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  padding:10px 18px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;
+  transition:all .2s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{background:var(--bg);color:var(--text);border:1px solid #d0d8e0}
+.btn-secondary:hover{background:#e0e8ee}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent-dark)}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-icon{font-size:1.1rem}
+.btn-full{width:100%;justify-content:center}
+.btn-lg{padding:14px 24px;font-size:1rem}
+
+.btn-mic{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--danger);color:#fff;font-size:1.5rem;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(217,83,79,.3);
+  transition:all .2s;position:relative;
+}
+.btn-mic.recording{animation:pulse .8s infinite;box-shadow:0 4px 24px rgba(217,83,79,.5)}
+.btn-mic:disabled{opacity:.4;pointer-events:none}
+
+.speech-status{
+  font-size:.78rem;color:var(--text-light);text-align:center;
+  min-height:20px;
+}
+.speech-status.active{color:var(--danger);animation:blink 1.2s infinite}
+
+/* Model answer */
+.model-answer{
+  background:linear-gradient(135deg,#e8f5e9,#f1f8e9);
+  border-radius:var(--radius);padding:16px 18px;
+  border-left:4px solid var(--accent);animation:slideUp .4s ease;
+}
+.model-answer .label{font-size:.72rem;color:var(--accent-dark);font-weight:700;margin-bottom:6px}
+.model-answer .text{font-family:'Nunito','Noto Sans JP',sans-serif;font-size:.95rem;line-height:1.7}
+.model-answer .tips{
+  margin-top:10px;padding-top:10px;border-top:1px solid rgba(92,184,92,.2);
+  font-size:.82rem;color:var(--text-light);
+}
+
+/* Self assessment */
+.self-assess{display:flex;gap:10px;margin-top:4px}
+.self-assess .btn{flex:1;justify-content:center;padding:12px}
+
+/* Step indicator */
+.step-indicator{
+  display:flex;align-items:center;gap:6px;padding:8px 0;
+}
+.step-dot{
+  width:8px;height:8px;border-radius:50%;background:#d0d8e0;
+  transition:all .3s;
+}
+.step-dot.active{background:var(--primary);width:24px;border-radius:4px}
+.step-dot.done{background:var(--accent)}
+.step-label{font-size:.72rem;color:var(--text-light);margin-left:auto}
+
+/* Result screen */
+.result-card{
+  background:var(--card);border-radius:var(--radius);padding:24px;
+  box-shadow:var(--shadow);text-align:center;
+}
+.result-card .big-stars{font-size:2.5rem;letter-spacing:6px;margin:12px 0}
+.result-card h2{font-size:1.3rem;margin-bottom:4px}
+.result-card .subtitle{color:var(--text-light);font-size:.88rem}
+
+.result-breakdown{display:flex;flex-direction:column;gap:8px}
+.result-row{
+  background:var(--card);border-radius:var(--radius-sm);padding:14px 16px;
+  display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+.result-row .section-name{flex:1;font-size:.88rem;font-weight:500}
+.result-row .section-result{font-size:.82rem;font-weight:600}
+.result-row .section-result.good{color:var(--accent)}
+.result-row .section-result.ok{color:var(--warn)}
+.result-row .section-result.needs-work{color:var(--danger)}
+
+.tips-card{
+  background:linear-gradient(135deg,#fff8e1,#fff3e0);
+  border-radius:var(--radius);padding:18px;
+  border-left:4px solid var(--warn);text-align:left;
+}
+.tips-card h3{font-size:.9rem;margin-bottom:8px;color:var(--warn)}
+.tips-card ul{padding-left:18px;font-size:.84rem;line-height:1.8;color:var(--text)}
+
+.result-actions{display:flex;gap:10px}
+.result-actions .btn{flex:1;justify-content:center}
+
+/* Illustration description box */
+.illustration-box{
+  background:var(--card);border-radius:var(--radius);padding:18px;
+  box-shadow:var(--shadow);border:2px dashed #d0d8e0;
+  text-align:center;color:var(--text-light);
+}
+.illustration-box .illust-icon{font-size:2.5rem;margin-bottom:8px;display:block}
+.illustration-box .illust-desc{font-size:.85rem;line-height:1.7;font-style:italic}
+
+/* Responsive */
+@media(max-width:380px){
+  html{font-size:14px}
+  .main{padding:14px}
+}
+
+/* Dark mode support */
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a2332;--card:#243447;--text:#e0e8f0;--text-light:#8899aa;
+    --shadow:0 4px 20px rgba(0,0,0,.2);--shadow-lg:0 8px 32px rgba(0,0,0,.3);
+    --primary-light:#1e3a4a;
+  }
+  .answer-textarea{background:#1a2332;color:var(--text);border-color:#344556}
+  .grade-card .grade-sets{background:#1a2332}
+  .btn-secondary{background:#1a2332;border-color:#344556;color:var(--text)}
+  .model-answer{background:linear-gradient(135deg,#1a332a,#243a2e)}
+  .tips-card{background:linear-gradient(135deg,#332e1a,#3a3424)}
+  .illustration-box{border-color:#344556}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Header -->
+  <div class="header" id="header">
+    <button class="btn-home" id="btnHome" onclick="goHome()" style="display:none">&#8592;</button>
+    <h1>英検面接シミュレーター</h1>
+    <span class="badge" id="gradeBadge" style="display:none"></span>
+  </div>
+  <div class="progress-bar" id="progressBar" style="display:none"><div class="fill" id="progressFill"></div></div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- HOME SCREEN -->
+    <div class="screen active" id="screenHome">
+      <div class="home-hero">
+        <span class="icon">&#127908;</span>
+        <h2>面接シミュレーター</h2>
+        <p>英検二次試験の面接練習ができます</p>
+      </div>
+
+      <div class="grade-selector">
+        <button class="grade-card" data-grade="3" onclick="selectGrade(3)">
+          <div class="grade-icon g3">3</div>
+          <div class="grade-info">
+            <h3>3級</h3>
+            <p>音読 + Q&amp;A + イラスト + 個人質問</p>
+          </div>
+          <span class="grade-sets">10セット</span>
+        </button>
+        <button class="grade-card" data-grade="p2" onclick="selectGrade('p2')">
+          <div class="grade-icon gp2">準2</div>
+          <div class="grade-info">
+            <h3>準2級</h3>
+            <p>音読 + Q&amp;A + イラスト + 意見質問</p>
+          </div>
+          <span class="grade-sets">8セット</span>
+        </button>
+        <button class="grade-card" data-grade="2" onclick="selectGrade(2)">
+          <div class="grade-icon g2">2</div>
+          <div class="grade-info">
+            <h3>2級</h3>
+            <p>音読 + Q&amp;A + ナレーション + 意見質問</p>
+          </div>
+          <span class="grade-sets">6セット</span>
+        </button>
+      </div>
+
+      <button class="btn-start" id="btnStart" disabled onclick="startInterview()">面接をはじめる</button>
+
+      <div class="history-section" id="historySection" style="display:none">
+        <h3>最近の練習</h3>
+        <div id="historyList"></div>
+      </div>
+    </div>
+
+    <!-- CARD HANDOUT -->
+    <div class="screen" id="screenCardHandout">
+      <div class="examiner">
+        <div class="examiner-avatar">&#128100;</div>
+        <div class="examiner-bubble">
+          <div class="label">面接官</div>
+          これからカードをわたしますので、まず黙読してください。時間は20秒です。
+        </div>
+      </div>
+      <div class="passage-card" id="passageCardSilent">
+        <div class="passage-title" id="passageTitleSilent"></div>
+        <div class="passage-text" id="passageTextSilent"></div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="startSilentReading()">カードを受け取る</button>
+    </div>
+
+    <!-- SILENT READING -->
+    <div class="screen" id="screenSilentRead">
+      <div class="step-indicator" id="stepIndicator1"></div>
+      <div class="examiner">
+        <div class="examiner-avatar">&#128100;</div>
+        <div class="examiner-bubble">
+          <div class="label">面接官</div>
+          黙読してください。（20秒）
+        </div>
+      </div>
+      <div class="passage-card">
+        <div class="passage-title" id="passageTitleRead"></div>
+        <div class="passage-text" id="passageTextRead"></div>
+      </div>
+      <div class="timer-display">
+        <div class="timer-circle" id="timerCircle"><span id="timerValue">20</span></div>
+        <div class="timer-label">黙読時間</div>
+      </div>
+    </div>
+
+    <!-- READ ALOUD -->
+    <div class="screen" id="screenReadAloud">
+      <div class="step-indicator" id="stepIndicator2"></div>
+      <div class="examiner">
+        <div class="examiner-avatar">&#128100;</div>
+        <div class="examiner-bubble">
+          <div class="label">面接官</div>
+          では、タイトルから声に出して読んでください。
+        </div>
+      </div>
+      <div class="passage-card">
+        <div class="passage-title" id="passageTitleAloud"></div>
+        <div class="passage-text" id="passageTextAloud"></div>
+      </div>
+      <div class="answer-area">
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px">
+          <button class="btn-mic" id="btnMicRead" onclick="toggleSpeechRead()">&#127908;</button>
+        </div>
+        <div class="speech-status" id="speechStatusRead">マイクボタンを押して音読しよう</div>
+        <button class="btn btn-secondary btn-full" id="btnReadDone" onclick="finishReadAloud()">読み終わった</button>
+      </div>
+    </div>
+
+    <!-- Q&A PHASE -->
+    <div class="screen" id="screenQA">
+      <div class="step-indicator" id="stepIndicatorQA"></div>
+      <div class="examiner" id="examinerQA">
+        <div class="examiner-avatar">&#128100;</div>
+        <div class="examiner-bubble">
+          <div class="label">面接官</div>
+          <span id="qaQuestion"></span>
+        </div>
+      </div>
+      <!-- Illustration box (shown for illustration questions) -->
+      <div class="illustration-box" id="illustBox" style="display:none">
+        <span class="illust-icon">&#128444;</span>
+        <div class="illust-desc" id="illustDesc"></div>
+      </div>
+      <!-- Passage reference (shown for passage Q&A) -->
+      <div class="passage-card" id="passageRefCard" style="display:none">
+        <div class="passage-title" id="passageTitleRef"></div>
+        <div class="passage-text" id="passageTextRef"></div>
+      </div>
+      <div class="answer-area" id="answerAreaQA">
+        <textarea class="answer-textarea" id="answerInput" placeholder="ここに回答を入力...（音声入力も使えます）"></textarea>
+        <div class="answer-actions">
+          <button class="btn-mic" id="btnMicQA" onclick="toggleSpeechQA()" style="width:44px;height:44px;font-size:1.2rem">&#127908;</button>
+          <button class="btn btn-primary" style="flex:1" onclick="submitAnswer()">回答する</button>
+          <button class="btn btn-secondary" onclick="showModelAnswer()">こたえを見る</button>
+        </div>
+        <div class="speech-status" id="speechStatusQA"></div>
+      </div>
+      <!-- Model Answer (shown after answering) -->
+      <div id="modelAnswerBox" style="display:none">
+        <div class="model-answer">
+          <div class="label">模範回答</div>
+          <div class="text" id="modelAnswerText"></div>
+          <div class="tips" id="modelAnswerTips"></div>
+        </div>
+        <div class="self-assess">
+          <button class="btn btn-accent" onclick="selfAssess('good')">&#9734; うまく言えた</button>
+          <button class="btn btn-warn" onclick="selfAssess('ok')">&#9825; もう少し</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div class="screen" id="screenResult">
+      <div class="result-card">
+        <h2>面接練習おつかれさまでした！</h2>
+        <div class="subtitle" id="resultGradeLabel"></div>
+        <div class="big-stars" id="resultStars"></div>
+        <div class="subtitle" id="resultScore"></div>
+      </div>
+      <div class="result-breakdown" id="resultBreakdown"></div>
+      <div class="tips-card">
+        <h3>&#128161; アドバイス</h3>
+        <ul id="resultTips"></ul>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-primary btn-lg" style="flex:1" onclick="retryInterview()">もう1回</button>
+        <button class="btn btn-secondary btn-lg" style="flex:1" onclick="differentSet()">べつの問題</button>
+      </div>
+      <button class="btn btn-secondary btn-full" onclick="goHome()">ホームに戻る</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// QUESTION DATA - 24 SETS
+// ============================================================
+
+const DATA = {
+  // ====== 3級 (10 sets) ======
+  3: [
+    {
+      grade:3,
+      passage:{
+        title:"Enjoying Music",
+        text:"Many people enjoy listening to music. Some people listen to music on the train. It makes them feel happy. Music is a wonderful part of our lives."
+      },
+      passageQuestion:{q:"According to the passage, where do some people listen to music?",modelAnswer:"They listen to music on the train.",tips:"passage の中にある文をそのまま使えばOK"},
+      illustrationDesc:"A boy is reading a book under a tree. A girl is playing the piano in a room. A woman is cooking dinner in the kitchen.",
+      illustrationQuestion:{q:"Please look at the picture. What is the boy doing?",modelAnswer:"He is reading a book.",tips:"He/She is ...ing の形で答えよう"},
+      personalQuestions:[
+        {q:"What do you like to do on weekends?",modelAnswer:"I like to play soccer with my friends.",tips:"I like to ... / I enjoy ...ing で答えよう"},
+        {q:"Do you often listen to music?",modelAnswer:"Yes, I often listen to music. I like pop music.",tips:"Yes/No のあとにもう1文つけよう"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"School Lunch",
+        text:"In Japan, students eat lunch at school. They enjoy eating with their classmates. School lunch is healthy and delicious. Students learn to eat many kinds of food."
+      },
+      passageQuestion:{q:"According to the passage, who do students enjoy eating lunch with?",modelAnswer:"They enjoy eating with their classmates.",tips:"文中の表現をそのまま使おう"},
+      illustrationDesc:"A girl is drinking milk. A boy is eating rice. A teacher is standing near the blackboard.",
+      illustrationQuestion:{q:"Please look at the picture. What is the girl doing?",modelAnswer:"She is drinking milk.",tips:"She is ...ing で答えよう"},
+      personalQuestions:[
+        {q:"What is your favorite food?",modelAnswer:"My favorite food is curry and rice. I eat it every week.",tips:"My favorite ... is ... で答えよう"},
+        {q:"Do you like cooking?",modelAnswer:"Yes, I like cooking. I sometimes make pancakes.",tips:"Yes/No + 具体的な内容を加えよう"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Going to the Library",
+        text:"Many students go to the library after school. They read books and study there. The library is a quiet place. Students can borrow books for free."
+      },
+      passageQuestion:{q:"According to the passage, what do students do at the library?",modelAnswer:"They read books and study there.",tips:"本文中の表現を使おう"},
+      illustrationDesc:"A boy is writing in his notebook. A girl is looking for a book on the shelf. An old man is reading a newspaper.",
+      illustrationQuestion:{q:"Please look at the picture. What is the girl doing?",modelAnswer:"She is looking for a book on the shelf.",tips:"She is ...ing で説明しよう"},
+      personalQuestions:[
+        {q:"Do you often go to the library?",modelAnswer:"Yes, I go to the library every Saturday. I like reading manga.",tips:"頻度（how often）を入れると良い"},
+        {q:"What kind of books do you like?",modelAnswer:"I like adventure stories. They are very exciting.",tips:"ジャンルを言ってから感想をつけよう"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Morning Exercise",
+        text:"Some people exercise every morning. They run in the park or walk near their homes. Morning exercise helps people stay healthy. It also makes them feel good."
+      },
+      passageQuestion:{q:"According to the passage, how does morning exercise help people?",modelAnswer:"It helps people stay healthy.",tips:"本文にある答えをそのまま使おう"},
+      illustrationDesc:"A man is jogging in the park. A woman is doing yoga on a mat. Two children are riding bicycles.",
+      illustrationQuestion:{q:"Please look at the picture. What is the man doing?",modelAnswer:"He is jogging in the park.",tips:"場所も一緒に言おう（in the park など）"},
+      personalQuestions:[
+        {q:"Do you play any sports?",modelAnswer:"Yes, I play basketball. I practice every day after school.",tips:"スポーツ名を言ってから詳しい話を加えよう"},
+        {q:"What time do you usually get up?",modelAnswer:"I usually get up at seven o'clock.",tips:"I usually ... at + 時間 で答えよう"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Pets at Home",
+        text:"Many families in Japan have pets. Dogs and cats are popular pets. People take care of their pets every day. Having a pet makes people happy."
+      },
+      passageQuestion:{q:"According to the passage, what are popular pets in Japan?",modelAnswer:"Dogs and cats are popular pets.",tips:"シンプルに本文の情報を答えよう"},
+      illustrationDesc:"A boy is washing a dog. A girl is feeding a cat. A father is cleaning the fish tank.",
+      illustrationQuestion:{q:"Please look at the picture. What is the boy doing?",modelAnswer:"He is washing a dog.",tips:"動作を現在進行形で答えよう"},
+      personalQuestions:[
+        {q:"Do you have any pets?",modelAnswer:"Yes, I have a dog. His name is Pochi.",tips:"ペットの名前や種類を言おう。いなければ I don't have any pets. でOK"},
+        {q:"What animal do you like?",modelAnswer:"I like rabbits. They are very cute.",tips:"理由を1文つけよう（They are ... / Because ...）"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Summer Vacation",
+        text:"Students look forward to summer vacation. They visit many places with their families. Some students go to the beach or the mountains. They have a lot of fun."
+      },
+      passageQuestion:{q:"According to the passage, who do students visit places with?",modelAnswer:"They visit places with their families.",tips:"with their families をしっかり言おう"},
+      illustrationDesc:"A family is having a barbecue. A boy is swimming in the sea. A girl is building a sandcastle.",
+      illustrationQuestion:{q:"Please look at the picture. What is the boy doing?",modelAnswer:"He is swimming in the sea.",tips:"場所の情報も入れよう"},
+      personalQuestions:[
+        {q:"Where do you want to go this summer?",modelAnswer:"I want to go to Okinawa. I want to see the beautiful sea.",tips:"I want to go to ... / I want to ... で答えよう"},
+        {q:"Do you like summer?",modelAnswer:"Yes, I like summer. I can eat ice cream and go swimming.",tips:"理由を具体的に1つ以上言おう"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Helping at Home",
+        text:"Children help their parents at home. They clean their rooms and wash the dishes. Helping at home is important. Children learn to be responsible."
+      },
+      passageQuestion:{q:"According to the passage, what do children do to help at home?",modelAnswer:"They clean their rooms and wash the dishes.",tips:"2つの動作を and でつなげて答えよう"},
+      illustrationDesc:"A girl is sweeping the floor. A boy is taking out the garbage. A mother is hanging laundry.",
+      illustrationQuestion:{q:"Please look at the picture. What is the girl doing?",modelAnswer:"She is sweeping the floor.",tips:"動作を ...ing で表現しよう"},
+      personalQuestions:[
+        {q:"Do you help your parents at home?",modelAnswer:"Yes, I help my parents. I wash the dishes after dinner.",tips:"具体的に何をするか言おう"},
+        {q:"What do you do after school?",modelAnswer:"I usually do my homework first. Then I watch TV.",tips:"時間の順番で話すとわかりやすい"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Traveling by Train",
+        text:"Many people in Japan travel by train. Trains are fast and convenient. People can read books or sleep on the train. Train travel is very popular."
+      },
+      passageQuestion:{q:"According to the passage, why do many people travel by train?",modelAnswer:"Because trains are fast and convenient.",tips:"Because + 理由 で答えよう"},
+      illustrationDesc:"A man is sleeping on the train. A woman is reading a newspaper. A student is listening to music with earphones.",
+      illustrationQuestion:{q:"Please look at the picture. What is the woman doing?",modelAnswer:"She is reading a newspaper.",tips:"何を読んでいるかも具体的に"},
+      personalQuestions:[
+        {q:"How do you go to school?",modelAnswer:"I go to school by bus. It takes about twenty minutes.",tips:"by + 交通手段 で答えよう"},
+        {q:"Do you like traveling?",modelAnswer:"Yes, I like traveling. I went to Kyoto last year.",tips:"行ったことがある場所を具体的に言おう"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Seasons in Japan",
+        text:"Japan has four seasons. Each season is beautiful. In spring, people enjoy cherry blossoms. In autumn, the leaves turn red and yellow."
+      },
+      passageQuestion:{q:"According to the passage, what do people enjoy in spring?",modelAnswer:"They enjoy cherry blossoms.",tips:"本文の表現をそのまま使おう"},
+      illustrationDesc:"A family is having a picnic under cherry trees. A boy is taking photos. A dog is running in the park.",
+      illustrationQuestion:{q:"Please look at the picture. What is the boy doing?",modelAnswer:"He is taking photos.",tips:"短くても正しい文で答えよう"},
+      personalQuestions:[
+        {q:"What is your favorite season?",modelAnswer:"My favorite season is autumn. I like the beautiful leaves.",tips:"My favorite season is ... + 理由"},
+        {q:"What do you do in winter?",modelAnswer:"I stay at home and drink hot chocolate. Sometimes I go skiing.",tips:"冬にする活動を具体的に言おう"}
+      ]
+    },
+    {
+      grade:3,
+      passage:{
+        title:"Using Smartphones",
+        text:"Many students use smartphones every day. They send messages and take photos. Smartphones are useful for studying too. Students can look up words online."
+      },
+      passageQuestion:{q:"According to the passage, how are smartphones useful for studying?",modelAnswer:"Students can look up words online.",tips:"本文の最後の文がヒント"},
+      illustrationDesc:"A girl is taking a photo of a flower. A boy is watching a video on his phone. A mother is talking on the phone.",
+      illustrationQuestion:{q:"Please look at the picture. What is the boy doing?",modelAnswer:"He is watching a video on his phone.",tips:"何で何をしているか説明しよう"},
+      personalQuestions:[
+        {q:"Do you use a smartphone?",modelAnswer:"Yes, I use a smartphone. I use it to talk to my friends.",tips:"何に使うか具体的に言おう"},
+        {q:"What do you want to do in the future?",modelAnswer:"I want to be a teacher. I like helping people learn.",tips:"I want to be ... / I want to ... + 理由"}
+      ]
+    }
+  ],
+
+  // ====== 準2級 (8 sets) ======
+  p2: [
+    {
+      grade:'p2',
+      passage:{
+        title:"Online Shopping",
+        text:"Today, many people buy things online instead of going to stores. Online shopping is convenient because people can buy things at any time. Some websites also show reviews from other customers. These reviews help people choose the right products. Online shopping is becoming more and more popular around the world."
+      },
+      passageQuestion:{q:"According to the passage, why is online shopping convenient?",modelAnswer:"Because people can buy things at any time.",tips:"本文の中から理由をそのまま抜き出そう"},
+      illustrationDesc:"Frame 1: A woman is looking at a laptop and choosing a bag. Frame 2: A delivery person is bringing a package to her door. Frame 3: The woman is showing the bag to her friend happily.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"A woman was shopping online for a bag. The next day, a delivery person brought the package to her door. She was happy and showed the bag to her friend.",tips:"時系列で3つの場面を説明しよう。過去形を使おう"},
+      opinionQuestions:[
+        {q:"Do you think online shopping will become more popular in the future?",modelAnswer:"Yes, I think so. Online shopping is very convenient and people can save time. Also, more and more products are available online.",tips:"Yes/No + 理由2つが理想的"},
+        {q:"Do you think it is important to read reviews before buying things?",modelAnswer:"Yes, I think it is important. Reviews help us know if the product is good or not. We can avoid buying bad products.",tips:"理由 + 具体例で説得力UP"}
+      ]
+    },
+    {
+      grade:'p2',
+      passage:{
+        title:"Volunteer Activities",
+        text:"Many high school students in Japan take part in volunteer activities. For example, some students help elderly people in their community. Others clean parks and rivers on weekends. Through these activities, students learn the importance of helping others. Volunteering is a valuable experience for young people."
+      },
+      passageQuestion:{q:"According to the passage, what do some students do to help in their community?",modelAnswer:"Some students help elderly people in their community. Others clean parks and rivers on weekends.",tips:"For example 以降の具体例を答えよう"},
+      illustrationDesc:"Frame 1: Students are gathering at a park with garbage bags. Frame 2: They are picking up trash and cleaning the park. Frame 3: The park is clean and the students are smiling and taking a group photo.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"Some students gathered at a park with garbage bags. They picked up trash and cleaned the park together. After they finished, the park was clean and they took a group photo.",tips:"集合→活動→結果の流れで話そう"},
+      opinionQuestions:[
+        {q:"Do you think students should do more volunteer activities?",modelAnswer:"Yes, I think so. Volunteer activities help students learn about society. Also, they can make new friends through volunteering.",tips:"理由を2つ述べよう"},
+        {q:"Do you think it is important to keep public places clean?",modelAnswer:"Yes, I think it is very important. Clean places make people feel comfortable. Also, keeping places clean protects the environment.",tips:"重要性 + 具体的な効果を言おう"}
+      ]
+    },
+    {
+      grade:'p2',
+      passage:{
+        title:"The Importance of Breakfast",
+        text:"Some students skip breakfast because they do not have enough time in the morning. However, eating breakfast is very important for students. It gives them energy to study at school. Research shows that students who eat breakfast can concentrate better. Schools should encourage students to eat breakfast every day."
+      },
+      passageQuestion:{q:"According to the passage, why do some students skip breakfast?",modelAnswer:"Because they do not have enough time in the morning.",tips:"because 以降を本文から取ろう"},
+      illustrationDesc:"Frame 1: A boy is sleeping and his alarm clock shows 7:30. Frame 2: He is running to school without eating breakfast. Frame 3: He is sitting in class looking tired and cannot concentrate.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"A boy overslept and woke up at 7:30. He ran to school without eating breakfast. During class, he was tired and could not concentrate on his studies.",tips:"原因→行動→結果を順に述べよう"},
+      opinionQuestions:[
+        {q:"Do you think eating breakfast is important?",modelAnswer:"Yes, I think eating breakfast is very important. It gives us energy for the whole morning. Without breakfast, it is hard to study or work well.",tips:"健康面・学習面から理由を言おう"},
+        {q:"Do you think schools should teach students about healthy eating?",modelAnswer:"Yes, I think so. Many students do not know what healthy food is. If schools teach them, they can make better choices about their diet.",tips:"問題点 + 解決策の流れで答えよう"}
+      ]
+    },
+    {
+      grade:'p2',
+      passage:{
+        title:"Learning Foreign Languages",
+        text:"In today's global society, learning foreign languages is very useful. Many companies want workers who can speak English or other languages. Students can learn languages at school, but they can also use apps and websites. Practicing every day is the best way to improve language skills. Speaking with native speakers is also very helpful."
+      },
+      passageQuestion:{q:"According to the passage, what is the best way to improve language skills?",modelAnswer:"Practicing every day is the best way to improve language skills.",tips:"本文の中の表現をそのまま使おう"},
+      illustrationDesc:"Frame 1: A girl is studying English with a textbook at her desk. Frame 2: She is using a language learning app on her tablet. Frame 3: She is talking with a foreign tourist and giving directions.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"A girl was studying English with her textbook at home. She also used a language learning app to practice. One day, she met a foreign tourist and helped them by giving directions in English.",tips:"学習の過程→実践の成果を見せよう"},
+      opinionQuestions:[
+        {q:"Do you think learning English is important for Japanese students?",modelAnswer:"Yes, I think so. English is used in many countries around the world. If Japanese students can speak English, they will have more job opportunities in the future.",tips:"グローバルな視点で理由を述べよう"},
+        {q:"Do you think using apps is a good way to study languages?",modelAnswer:"Yes, I think so. Apps are convenient because we can study anywhere. Also, many apps have fun games that make learning enjoyable.",tips:"便利さ + 楽しさの2点で答えよう"}
+      ]
+    },
+    {
+      grade:'p2',
+      passage:{
+        title:"Reducing Food Waste",
+        text:"Every year, a large amount of food is thrown away in Japan. Much of this food is still safe to eat. Some stores have started selling food at lower prices before it expires. Many people are now trying to reduce food waste at home too. Using leftover food to make new dishes is one good way to do this."
+      },
+      passageQuestion:{q:"According to the passage, what have some stores started doing to reduce food waste?",modelAnswer:"They have started selling food at lower prices before it expires.",tips:"Some stores have started ... の部分を答えよう"},
+      illustrationDesc:"Frame 1: A supermarket worker is putting discount stickers on food that will expire soon. Frame 2: A woman is buying the discounted food. Frame 3: She is at home making a meal using the food she bought.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"A supermarket worker put discount stickers on food that would expire soon. A woman bought the discounted food. At home, she made a delicious meal using the food she bought.",tips:"店での対策→購入→活用の流れ"},
+      opinionQuestions:[
+        {q:"Do you think Japan has a serious food waste problem?",modelAnswer:"Yes, I think so. Japan throws away a lot of food every year. This is bad for the environment and wastes money.",tips:"具体的な問題点を挙げよう"},
+        {q:"Do you think people should try to cook more at home?",modelAnswer:"Yes, I think so. Cooking at home is healthier and cheaper than eating out. Also, people can control how much food they make, so there is less waste.",tips:"健康・経済・環境の視点で答えよう"}
+      ]
+    },
+    {
+      grade:'p2',
+      passage:{
+        title:"Working from Home",
+        text:"Recently, more people have started working from home. This is possible because of the internet and video meeting tools. Working from home saves time because people do not have to commute. However, some people find it difficult to separate work from their personal life. Companies need to find ways to support remote workers."
+      },
+      passageQuestion:{q:"According to the passage, why does working from home save time?",modelAnswer:"Because people do not have to commute.",tips:"通勤しなくていい点を答えよう"},
+      illustrationDesc:"Frame 1: A man is working at his desk at home with a laptop. Frame 2: He is having a video meeting with his colleagues. Frame 3: After work, he is playing with his children in the living room.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"A man was working from home at his desk. He had a video meeting with his colleagues online. After he finished work, he was able to spend time playing with his children.",tips:"仕事の様子→ミーティング→メリットの順で"},
+      opinionQuestions:[
+        {q:"Do you think working from home is a good idea?",modelAnswer:"Yes, I think so. People can save time by not commuting. They can also spend more time with their families.",tips:"メリットを2つ述べよう"},
+        {q:"Do you think technology has made our lives more convenient?",modelAnswer:"Yes, I think so. For example, we can shop online, work from home, and communicate with people around the world easily. Technology has changed our daily lives a lot.",tips:"具体例を入れると説得力UP"}
+      ]
+    },
+    {
+      grade:'p2',
+      passage:{
+        title:"Eco-Friendly Transportation",
+        text:"More people are choosing eco-friendly ways to travel. Bicycles and electric cars produce less pollution than regular cars. Some cities have created special bicycle lanes to make cycling safer. Public transportation like buses and trains is also good for the environment. By using these options, people can help reduce air pollution."
+      },
+      passageQuestion:{q:"According to the passage, why have some cities created special bicycle lanes?",modelAnswer:"To make cycling safer.",tips:"目的を答えよう（to + 動詞原形）"},
+      illustrationDesc:"Frame 1: A family is riding bicycles together on a bicycle lane. Frame 2: People are waiting at a bus stop and a clean electric bus is arriving. Frame 3: The city skyline is shown with blue skies and clean air.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"A family was riding bicycles together on a bicycle lane. At the bus stop, people were waiting for a clean electric bus. Thanks to eco-friendly transportation, the city had blue skies and clean air.",tips:"交通手段→結果（きれいな空気）を結びつけよう"},
+      opinionQuestions:[
+        {q:"Do you think people should use public transportation more?",modelAnswer:"Yes, I think so. Public transportation produces less pollution than private cars. If more people use trains and buses, we can reduce air pollution.",tips:"環境面のメリットを中心に"},
+        {q:"Do you think electric cars will replace regular cars in the future?",modelAnswer:"Yes, I think they will. Electric cars are better for the environment. Also, the technology is improving and prices are getting lower.",tips:"技術進歩と価格低下の2点"}
+      ]
+    },
+    {
+      grade:'p2',
+      passage:{
+        title:"The Power of Reading",
+        text:"Reading books has many benefits for people of all ages. It improves vocabulary and writing skills. Reading also helps people think more creatively. Many successful people say that reading is one of their most important habits. Libraries and bookstores make it easy for everyone to find interesting books."
+      },
+      passageQuestion:{q:"According to the passage, what skills does reading improve?",modelAnswer:"It improves vocabulary and writing skills.",tips:"2つのスキルを and でつなげて答えよう"},
+      illustrationDesc:"Frame 1: A mother is reading a picture book to her young child at bedtime. Frame 2: A teenager is reading a novel at the library. Frame 3: An office worker is reading a business book on the train.",
+      illustrationQuestion:{q:"Please look at the pictures and describe the situation.",modelAnswer:"A mother was reading a picture book to her child before bedtime. A teenager was enjoying a novel at the library. An office worker was reading a business book on the train during commute.",tips:"年齢の違う3人の読書場面を説明しよう"},
+      opinionQuestions:[
+        {q:"Do you think young people should read more books?",modelAnswer:"Yes, I think so. Reading books helps young people learn new things and improve their language skills. Also, books can teach them about different cultures and ideas.",tips:"知識・語学力・文化理解の点から"},
+        {q:"Do you think e-books will replace paper books?",modelAnswer:"I don't think so completely. E-books are convenient, but many people still enjoy holding real books. I think both will continue to exist.",tips:"両方のメリットに触れよう"}
+      ]
+    }
+  ],
+
+  // ====== 2級 (6 sets) ======
+  2: [
+    {
+      grade:2,
+      passage:{
+        title:"The Rise of Sustainable Fashion",
+        text:"In recent years, the fashion industry has faced criticism for its environmental impact. Fast fashion encourages people to buy cheap clothing that is quickly thrown away. However, more consumers are now choosing sustainable fashion brands that use eco-friendly materials. Some companies have also started recycling old clothes to reduce waste. This trend toward sustainable fashion is expected to continue growing as environmental awareness increases."
+      },
+      passageQuestion:{q:"According to the passage, why has the fashion industry faced criticism?",modelAnswer:"Because of its environmental impact. Fast fashion encourages people to buy cheap clothing that is quickly thrown away.",tips:"environmental impact と fast fashion の問題点を述べよう"},
+      illustrationDesc:"Frame 1: A woman is looking at many cheap clothes in a fast fashion store and putting them in a shopping cart. Frame 2: Six months later, she is throwing away bags full of old clothes. Frame 3: She visits a sustainable fashion shop and buys one high-quality item made from recycled materials.",
+      illustrationQuestion:{q:"Please look at the three pictures and narrate the story.",modelAnswer:"A woman was shopping at a fast fashion store and buying many cheap clothes. Six months later, she realized she had too many old clothes and threw them away. After learning about environmental problems, she decided to visit a sustainable fashion shop and bought a high-quality item made from recycled materials.",tips:"行動の変化を因果関係でつなげよう"},
+      opinionQuestions:[
+        {q:"Do you think consumers have a responsibility to buy environmentally friendly products?",modelAnswer:"Yes, I believe consumers have a responsibility. Our purchasing choices affect the environment directly. If we choose eco-friendly products, companies will be encouraged to produce more sustainable goods. Individual actions can lead to bigger changes in society.",tips:"消費者の影響力 + 企業への波及効果"},
+        {q:"Some people say that economic growth is more important than protecting the environment. What do you think about this?",modelAnswer:"I disagree with that idea. If we damage the environment for economic growth, we will face serious problems in the future, such as climate change and resource depletion. I believe we need to find ways to achieve both economic growth and environmental protection.",tips:"反論 + 理由 + 代替案を示そう"}
+      ]
+    },
+    {
+      grade:2,
+      passage:{
+        title:"Remote Education and Its Challenges",
+        text:"The spread of online learning has changed education significantly. Students can now attend classes from anywhere using computers and the internet. This has made education more accessible to people in rural areas. However, online learning also has some drawbacks. Some students struggle to stay motivated without face-to-face interaction with teachers. Schools must find ways to make online education more effective and engaging for all students."
+      },
+      passageQuestion:{q:"According to the passage, what is one benefit of online learning for people in rural areas?",modelAnswer:"It has made education more accessible to people in rural areas.",tips:"accessible という語がキーワード"},
+      illustrationDesc:"Frame 1: A student in a rural area is attending an online class on her laptop at home. Frame 2: She looks bored and distracted while studying alone. Frame 3: The school introduces a hybrid system where she attends online classes but also visits the school once a week for group activities.",
+      illustrationQuestion:{q:"Please look at the three pictures and narrate the story.",modelAnswer:"A student living in a rural area was attending an online class from home on her laptop. However, she started to feel bored and distracted studying by herself without classmates. Her school then introduced a hybrid system that combined online classes with weekly visits to school for group activities, which helped her stay motivated.",tips:"問題の発生→解決策の導入をストーリーにしよう"},
+      opinionQuestions:[
+        {q:"Do you think online classes are as effective as traditional classroom learning?",modelAnswer:"I think online classes can be effective for some subjects, but not all. Subjects like math and science that require hands-on experiments are better taught in classrooms. However, for lectures and reading-based subjects, online learning can be just as effective.",tips:"科目による違いを指摘すると深みが出る"},
+        {q:"Do you think technology will change education in the future?",modelAnswer:"Yes, I believe technology will dramatically change education. AI can personalize learning for each student, and virtual reality can create immersive learning experiences. However, the role of teachers will still be important for guiding and motivating students.",tips:"具体的なテクノロジー + 教師の役割にも触れよう"}
+      ]
+    },
+    {
+      grade:2,
+      passage:{
+        title:"The Benefits of Cultural Exchange",
+        text:"Cultural exchange programs allow people to experience life in different countries. Participants can learn new languages, understand different customs, and develop a broader perspective. Many universities offer study abroad programs that last for several months. Companies also send employees overseas to gain international experience. These programs help build understanding and cooperation between people from different backgrounds."
+      },
+      passageQuestion:{q:"According to the passage, what can participants learn through cultural exchange programs?",modelAnswer:"They can learn new languages, understand different customs, and develop a broader perspective.",tips:"3つのポイントを全部言おう"},
+      illustrationDesc:"Frame 1: A Japanese student arrives at an airport in Australia with a suitcase. Frame 2: He is attending a class with students from many different countries, discussing in groups. Frame 3: Back in Japan, he is giving a presentation at his company about his international experience.",
+      illustrationQuestion:{q:"Please look at the three pictures and narrate the story.",modelAnswer:"A Japanese student arrived in Australia for a study abroad program. He attended classes with students from various countries and participated in group discussions, learning about different cultures. After returning to Japan, he used his international experience to give presentations at his company, sharing what he had learned.",tips:"出発→海外での経験→帰国後の活用の流れ"},
+      opinionQuestions:[
+        {q:"Do you think studying abroad is important for young people?",modelAnswer:"Yes, I think studying abroad is very important. It helps young people become more independent and open-minded. They can also improve their language skills and build international networks that will benefit them in their careers.",tips:"自立性・語学力・人脈の3点"},
+        {q:"Some people say that globalization is making all cultures the same. What do you think?",modelAnswer:"I partially agree. Global brands and social media do spread similar trends worldwide. However, I think local cultures are still strong. People can enjoy global culture while keeping their own traditions. The key is to find a balance between the two.",tips:"両面に触れてバランスのある意見を"}
+      ]
+    },
+    {
+      grade:2,
+      passage:{
+        title:"Artificial Intelligence in Daily Life",
+        text:"Artificial intelligence is becoming an important part of our daily lives. AI technology is used in smartphones, home appliances, and even medical diagnosis. Many companies are developing AI systems that can perform tasks more efficiently than humans. While AI brings many benefits, some people worry about job losses caused by automation. Society must consider how to use AI responsibly while preparing workers for changes in the job market."
+      },
+      passageQuestion:{q:"According to the passage, what do some people worry about regarding AI?",modelAnswer:"Some people worry about job losses caused by automation.",tips:"worry about 以降を正確に答えよう"},
+      illustrationDesc:"Frame 1: A person is asking a smart speaker to turn on the lights and play music. Frame 2: A doctor is using an AI system to analyze X-ray images and find diseases. Frame 3: A factory worker is watching a robot do his job, looking worried about his future.",
+      illustrationQuestion:{q:"Please look at the three pictures and narrate the story.",modelAnswer:"A person was using a smart speaker to control home appliances by voice. In a hospital, a doctor was using an AI system to analyze X-ray images, which helped detect diseases more accurately. However, in a factory, a worker was watching a robot perform his job, and he looked worried about his future employment.",tips:"便利さ→高度な活用→課題の順で社会的影響を述べよう"},
+      opinionQuestions:[
+        {q:"Do you think AI will take away many jobs in the future?",modelAnswer:"I think AI will change many jobs, but it won't necessarily take them all away. Some repetitive jobs may be replaced, but new types of jobs will also be created. People will need to learn new skills to work alongside AI technology.",tips:"変化はあるが新しい仕事も生まれるという視点"},
+        {q:"Do you think governments should regulate the development of AI?",modelAnswer:"Yes, I think some regulation is necessary. Without rules, AI could be used in harmful ways, such as invading people's privacy. However, too much regulation might slow down innovation. Governments should create balanced regulations that protect people while allowing technological progress.",tips:"規制の必要性 + 行き過ぎへの懸念のバランス"}
+      ]
+    },
+    {
+      grade:2,
+      passage:{
+        title:"Mental Health Awareness",
+        text:"Mental health has become an important topic in modern society. Stress from work and school can lead to anxiety and depression. Experts say that talking about mental health openly helps reduce the stigma surrounding it. Many schools have started offering counseling services for students. Companies are also introducing wellness programs to support employees' mental health. These efforts are helping more people seek the help they need."
+      },
+      passageQuestion:{q:"According to the passage, what have many schools started offering?",modelAnswer:"Many schools have started offering counseling services for students.",tips:"schools の取り組みを具体的に答えよう"},
+      illustrationDesc:"Frame 1: A high school student is sitting alone at his desk, looking stressed and holding his head. Frame 2: He visits a school counselor and talks about his problems. Frame 3: He is smiling and playing sports with friends, looking healthier and happier.",
+      illustrationQuestion:{q:"Please look at the three pictures and narrate the story.",modelAnswer:"A high school student was sitting alone at his desk, feeling very stressed and worried. He decided to visit the school counselor and talked about his problems. After getting support, he became healthier and happier, and started playing sports with his friends again.",tips:"問題→相談→改善のストーリーを感情の変化とともに"},
+      opinionQuestions:[
+        {q:"Do you think enough is being done to support mental health in Japan?",modelAnswer:"No, I don't think enough is being done yet. Many people in Japan still feel uncomfortable talking about mental health. More education and awareness campaigns are needed. Schools and workplaces should provide better support systems for people who are struggling.",tips:"現状の問題点 + 改善策を提示しよう"},
+        {q:"Do you think social media affects young people's mental health?",modelAnswer:"Yes, I think social media can have a negative effect on mental health. Young people often compare themselves to others online, which can lead to low self-esteem. Also, cyberbullying is a serious problem. However, social media can also help people connect and find support communities.",tips:"ネガティブ面 + ポジティブ面の両方に触れよう"}
+      ]
+    },
+    {
+      grade:2,
+      passage:{
+        title:"Urban Green Spaces",
+        text:"As cities grow larger, the need for green spaces becomes more important. Parks and gardens provide places where people can relax and exercise. Research has shown that spending time in nature reduces stress and improves overall well-being. Some cities have started creating rooftop gardens and vertical forests on buildings. These innovative projects not only improve air quality but also help cool down urban areas during hot summers."
+      },
+      passageQuestion:{q:"According to the passage, what have some cities started creating on buildings?",modelAnswer:"Some cities have started creating rooftop gardens and vertical forests on buildings.",tips:"rooftop gardens と vertical forests の2つを答えよう"},
+      illustrationDesc:"Frame 1: A bird's-eye view of a gray city with no parks, people looking tired on the streets. Frame 2: The city government plants trees and builds a large park in the center. Frame 3: People are jogging, having picnics, and children are playing in the park, with clean air and blue sky.",
+      illustrationQuestion:{q:"Please look at the three pictures and narrate the story.",modelAnswer:"A city had no parks or green spaces, and the people living there looked tired and unhappy. The city government decided to plant trees and build a large park in the city center. After the park was completed, people began jogging, having picnics, and children started playing there. The air became cleaner and the quality of life improved significantly.",tips:"問題のある状態→行政の対策→改善結果を因果関係で述べよう"},
+      opinionQuestions:[
+        {q:"Do you think cities should invest more in creating green spaces?",modelAnswer:"Yes, I strongly believe cities should invest in green spaces. Parks and gardens improve people's physical and mental health. They also help reduce air pollution and lower temperatures in summer. Although it costs money, the long-term benefits for citizens' health and happiness are worth the investment.",tips:"健康面・環境面・コスト対効果の観点から"},
+        {q:"Some people say that building more apartments is more important than creating parks. What do you think?",modelAnswer:"I understand the need for housing, but I think parks are equally important. Living in a city without green spaces can lead to stress and health problems. Cities should plan carefully to include both housing and green spaces. A good balance between the two is essential for a livable city.",tips:"両方の重要性を認めた上でバランスを主張しよう"}
+      ]
+    }
+  ]
+};
+
+// ============================================================
+// APP STATE
+// ============================================================
+let state = {
+  selectedGrade: null,
+  currentSet: null,
+  currentSetIndex: -1,
+  currentStep: 0, // 0=home,1=cardHandout,2=silentRead,3=readAloud,4+=qa
+  totalSteps: 0,
+  qaIndex: 0,
+  qaList: [], // flattened list of QA items
+  results: [], // {section, result}
+  timerInterval: null,
+  recognition: null,
+  isRecording: false,
+  speechSupported: false,
+  ttsSupported: false,
+};
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  state.speechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+  state.ttsSupported = 'speechSynthesis' in window;
+  if (!state.speechSupported) {
+    document.querySelectorAll('.btn-mic').forEach(b => b.style.display = 'none');
+  }
+  renderHistory();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.add('active');
+    // force re-animation
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  }
+}
+
+function goHome() {
+  stopTimer();
+  stopRecognition();
+  if (state.ttsSupported) speechSynthesis.cancel();
+  state.currentStep = 0;
+  document.getElementById('btnHome').style.display = 'none';
+  document.getElementById('gradeBadge').style.display = 'none';
+  document.getElementById('progressBar').style.display = 'none';
+  showScreen('screenHome');
+  renderHistory();
+}
+
+function updateProgress() {
+  const bar = document.getElementById('progressBar');
+  const fill = document.getElementById('progressFill');
+  bar.style.display = 'block';
+  const pct = state.totalSteps > 0 ? Math.min(100, ((state.currentStep - 1) / state.totalSteps) * 100) : 0;
+  fill.style.width = pct + '%';
+}
+
+// ============================================================
+// GRADE SELECTION
+// ============================================================
+function selectGrade(grade) {
+  state.selectedGrade = grade;
+  document.querySelectorAll('.grade-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`.grade-card[data-grade="${grade}"]`).classList.add('selected');
+  document.getElementById('btnStart').disabled = false;
+}
+
+// ============================================================
+// START INTERVIEW
+// ============================================================
+function startInterview() {
+  const sets = DATA[state.selectedGrade];
+  if (!sets || sets.length === 0) return;
+
+  // Pick a random set (avoid last used if possible)
+  const lastIdx = getLastUsedIndex(state.selectedGrade);
+  let idx;
+  if (sets.length === 1) {
+    idx = 0;
+  } else {
+    do { idx = Math.floor(Math.random() * sets.length); } while (idx === lastIdx);
+  }
+
+  state.currentSetIndex = idx;
+  state.currentSet = sets[idx];
+  state.results = [];
+  state.qaIndex = 0;
+
+  // Build QA list
+  buildQAList();
+
+  // total steps: silentRead(1) + readAloud(1) + qaList.length
+  state.totalSteps = 2 + state.qaList.length;
+  state.currentStep = 1;
+
+  // UI
+  const gradeLabels = {3:'3級','p2':'準2級',2:'2級'};
+  document.getElementById('gradeBadge').textContent = gradeLabels[state.selectedGrade];
+  document.getElementById('gradeBadge').style.display = 'inline';
+  document.getElementById('btnHome').style.display = 'flex';
+  updateProgress();
+
+  // Show card handout
+  const s = state.currentSet;
+  document.getElementById('passageTitleSilent').textContent = s.passage.title;
+  document.getElementById('passageTextSilent').textContent = s.passage.text;
+  showScreen('screenCardHandout');
+  speak('これからカードをわたしますので、まず黙読してください。時間は20秒です。');
+}
+
+function buildQAList() {
+  const s = state.currentSet;
+  state.qaList = [];
+
+  // 1. Passage question
+  state.qaList.push({
+    type: 'passage',
+    section: 'パッセージQ&A',
+    q: s.passageQuestion.q,
+    modelAnswer: s.passageQuestion.modelAnswer,
+    tips: s.passageQuestion.tips || '',
+    showPassage: true
+  });
+
+  // 2. Illustration question
+  state.qaList.push({
+    type: 'illustration',
+    section: 'イラストQ&A',
+    q: s.illustrationQuestion.q,
+    modelAnswer: s.illustrationQuestion.modelAnswer,
+    tips: s.illustrationQuestion.tips || '',
+    illustrationDesc: s.illustrationDesc
+  });
+
+  // 3. Personal/Opinion questions
+  if (s.personalQuestions) {
+    s.personalQuestions.forEach((pq, i) => {
+      state.qaList.push({
+        type: 'personal',
+        section: `個人質問${i + 1}`,
+        q: pq.q,
+        modelAnswer: pq.modelAnswer,
+        tips: pq.tips || ''
+      });
+    });
+  }
+  if (s.opinionQuestions) {
+    s.opinionQuestions.forEach((oq, i) => {
+      state.qaList.push({
+        type: 'opinion',
+        section: `意見質問${i + 1}`,
+        q: oq.q,
+        modelAnswer: oq.modelAnswer,
+        tips: oq.tips || ''
+      });
+    });
+  }
+}
+
+// ============================================================
+// SILENT READING
+// ============================================================
+function startSilentReading() {
+  state.currentStep = 2;
+  updateProgress();
+
+  const s = state.currentSet;
+  document.getElementById('passageTitleRead').textContent = s.passage.title;
+  document.getElementById('passageTextRead').textContent = s.passage.text;
+
+  showScreen('screenSilentRead');
+  renderStepIndicator('stepIndicator1');
+
+  // Start 20s timer
+  let seconds = 20;
+  const timerVal = document.getElementById('timerValue');
+  const timerCircle = document.getElementById('timerCircle');
+  timerVal.textContent = seconds;
+  timerCircle.className = 'timer-circle';
+
+  state.timerInterval = setInterval(() => {
+    seconds--;
+    timerVal.textContent = seconds;
+    if (seconds <= 5) timerCircle.className = 'timer-circle danger';
+    else if (seconds <= 10) timerCircle.className = 'timer-circle warning';
+    if (seconds <= 0) {
+      stopTimer();
+      goToReadAloud();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+}
+
+// ============================================================
+// READ ALOUD
+// ============================================================
+function goToReadAloud() {
+  stopTimer();
+  state.currentStep = 3;
+  updateProgress();
+
+  const s = state.currentSet;
+
+  // Build word-wrapped passage
+  const titleEl = document.getElementById('passageTitleAloud');
+  const textEl = document.getElementById('passageTextAloud');
+  titleEl.textContent = s.passage.title;
+
+  const words = s.passage.text.split(/\s+/);
+  textEl.innerHTML = words.map((w, i) => `<span class="word" data-idx="${i}">${w}</span>`).join(' ');
+
+  showScreen('screenReadAloud');
+  renderStepIndicator('stepIndicator2');
+  speak('では、タイトルから声に出して読んでください。');
+
+  document.getElementById('speechStatusRead').textContent =
+    state.speechSupported ? 'マイクボタンを押して音読しよう' : '声に出して読んだら「読み終わった」を押そう';
+}
+
+let readTranscript = '';
+
+function toggleSpeechRead() {
+  if (state.isRecording) {
+    stopRecognition();
+  } else {
+    readTranscript = '';
+    startRecognition('read');
+  }
+}
+
+function finishReadAloud() {
+  stopRecognition();
+
+  // Highlight matched/missed words
+  if (readTranscript) {
+    const passageWords = state.currentSet.passage.text.split(/\s+/).map(w => w.toLowerCase().replace(/[^a-z']/g, ''));
+    const spokenWords = readTranscript.toLowerCase().split(/\s+/).map(w => w.replace(/[^a-z']/g, ''));
+
+    document.querySelectorAll('#passageTextAloud .word').forEach((el, i) => {
+      const pw = passageWords[i];
+      if (spokenWords.includes(pw)) {
+        el.classList.add('highlight');
+      } else {
+        el.classList.add('missed');
+      }
+    });
+
+    // Brief pause to show results
+    state.results.push({ section: '音読', result: 'done' });
+    setTimeout(() => goToQA(), 1500);
+  } else {
+    state.results.push({ section: '音読', result: 'done' });
+    goToQA();
+  }
+}
+
+// ============================================================
+// Q&A PHASE
+// ============================================================
+function goToQA() {
+  state.qaIndex = 0;
+  showCurrentQuestion();
+}
+
+function showCurrentQuestion() {
+  if (state.qaIndex >= state.qaList.length) {
+    showResults();
+    return;
+  }
+
+  state.currentStep = 3 + state.qaIndex + 1;
+  updateProgress();
+
+  const qa = state.qaList[state.qaIndex];
+
+  // Reset UI
+  document.getElementById('answerInput').value = '';
+  document.getElementById('modelAnswerBox').style.display = 'none';
+  document.getElementById('answerAreaQA').style.display = 'flex';
+  document.getElementById('qaQuestion').textContent = qa.q;
+
+  // Show/hide illustration
+  const illustBox = document.getElementById('illustBox');
+  if (qa.type === 'illustration') {
+    illustBox.style.display = 'block';
+    document.getElementById('illustDesc').textContent = qa.illustrationDesc;
+  } else {
+    illustBox.style.display = 'none';
+  }
+
+  // Show/hide passage reference
+  const passRef = document.getElementById('passageRefCard');
+  if (qa.showPassage) {
+    passRef.style.display = 'block';
+    document.getElementById('passageTitleRef').textContent = state.currentSet.passage.title;
+    document.getElementById('passageTextRef').textContent = state.currentSet.passage.text;
+  } else {
+    passRef.style.display = 'none';
+  }
+
+  showScreen('screenQA');
+  renderStepIndicator('stepIndicatorQA');
+
+  // TTS
+  speak(qa.q);
+}
+
+function submitAnswer() {
+  showModelAnswer();
+}
+
+function showModelAnswer() {
+  const qa = state.qaList[state.qaIndex];
+  document.getElementById('answerAreaQA').style.display = 'none';
+  stopRecognition();
+
+  const box = document.getElementById('modelAnswerBox');
+  box.style.display = 'block';
+  document.getElementById('modelAnswerText').textContent = qa.modelAnswer;
+  document.getElementById('modelAnswerTips').textContent = qa.tips ? '💡 ' + qa.tips : '';
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function selfAssess(level) {
+  const qa = state.qaList[state.qaIndex];
+  state.results.push({
+    section: qa.section,
+    result: level
+  });
+
+  state.qaIndex++;
+  if (state.qaIndex < state.qaList.length) {
+    showCurrentQuestion();
+  } else {
+    showResults();
+  }
+}
+
+// ============================================================
+// RESULTS
+// ============================================================
+function showResults() {
+  stopTimer();
+  stopRecognition();
+
+  const gradeLabels = {3:'3級','p2':'準2級',2:'2級'};
+  document.getElementById('resultGradeLabel').textContent = gradeLabels[state.selectedGrade] + ' 面接練習';
+
+  // Calculate stars
+  let goodCount = 0;
+  let totalCount = 0;
+  state.results.forEach(r => {
+    if (r.result === 'good' || r.result === 'ok') totalCount++;
+    if (r.result === 'good') goodCount++;
+  });
+
+  const ratio = totalCount > 0 ? goodCount / totalCount : 0;
+  let stars = 1;
+  if (ratio >= 0.8) stars = 5;
+  else if (ratio >= 0.6) stars = 4;
+  else if (ratio >= 0.4) stars = 3;
+  else if (ratio >= 0.2) stars = 2;
+
+  const starStr = '\u2605'.repeat(stars) + '\u2606'.repeat(5 - stars);
+  document.getElementById('resultStars').textContent = starStr;
+  document.getElementById('resultScore').textContent = `${goodCount} / ${totalCount} セクション「うまく言えた」`;
+
+  // Breakdown
+  const breakdown = document.getElementById('resultBreakdown');
+  breakdown.innerHTML = '';
+  state.results.forEach(r => {
+    if (r.result === 'done') return;
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    const cls = r.result === 'good' ? 'good' : 'needs-work';
+    const label = r.result === 'good' ? 'うまく言えた' : 'もう少し';
+    row.innerHTML = `<span class="section-name">${r.section}</span><span class="section-result ${cls}">${label}</span>`;
+    breakdown.appendChild(row);
+  });
+
+  // Tips
+  const tipsEl = document.getElementById('resultTips');
+  const tips = generateTips();
+  tipsEl.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+
+  // Save history
+  saveHistory(stars);
+
+  state.currentStep = state.totalSteps;
+  updateProgress();
+  showScreen('screenResult');
+}
+
+function generateTips() {
+  const tips = [];
+  const hasOk = state.results.some(r => r.result === 'ok');
+  const grade = state.selectedGrade;
+
+  if (grade === 3) {
+    tips.push('音読はゆっくりはっきり読もう。タイトルも忘れずに。');
+    if (hasOk) tips.push('答えるときは、主語 + 動詞のかたちを意識しよう。');
+    tips.push('個人質問は Yes/No + もう1文を心がけよう。');
+    tips.push('わからないときは "Could you say that again?" と聞き返せるよ。');
+  } else if (grade === 'p2') {
+    tips.push('パッセージの音読は意味のかたまりで区切って読もう。');
+    if (hasOk) tips.push('意見質問は、理由を2つ言えると高得点になるよ。');
+    tips.push('イラスト描写は時系列で3つの場面を説明しよう。');
+    tips.push('"I think ..." + "because ..." + "Also, ..." のパターンを練習しよう。');
+  } else {
+    tips.push('パッセージは内容を理解しながら、自然な速さで読もう。');
+    if (hasOk) tips.push('意見質問では具体例を入れると説得力が増すよ。');
+    tips.push('ナレーションは登場人物の気持ちの変化も描写しよう。');
+    tips.push('"For example, ..." や "However, ..." を使って論理的に話そう。');
+  }
+  return tips;
+}
+
+// ============================================================
+// RETRY / DIFFERENT SET
+// ============================================================
+function retryInterview() {
+  state.currentSetIndex = state.currentSetIndex; // same set
+  state.currentSet = DATA[state.selectedGrade][state.currentSetIndex];
+  state.results = [];
+  state.qaIndex = 0;
+  buildQAList();
+  state.totalSteps = 2 + state.qaList.length;
+  state.currentStep = 1;
+  updateProgress();
+
+  const s = state.currentSet;
+  document.getElementById('passageTitleSilent').textContent = s.passage.title;
+  document.getElementById('passageTextSilent').textContent = s.passage.text;
+  showScreen('screenCardHandout');
+  speak('もう一度やってみましょう。カードをわたします。');
+}
+
+function differentSet() {
+  startInterview();
+}
+
+// ============================================================
+// SPEECH RECOGNITION
+// ============================================================
+function startRecognition(mode) {
+  if (!state.speechSupported) return;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  state.recognition = new SpeechRecognition();
+  state.recognition.lang = 'en-US';
+  state.recognition.interimResults = true;
+  state.recognition.continuous = true;
+
+  state.recognition.onresult = (e) => {
+    let transcript = '';
+    for (let i = 0; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+    }
+    if (mode === 'read') {
+      readTranscript = transcript;
+      document.getElementById('speechStatusRead').textContent = transcript.slice(-80);
+      document.getElementById('speechStatusRead').className = 'speech-status active';
+    } else {
+      document.getElementById('answerInput').value = transcript;
+      document.getElementById('speechStatusQA').textContent = '音声認識中...';
+      document.getElementById('speechStatusQA').className = 'speech-status active';
+    }
+  };
+
+  state.recognition.onerror = (e) => {
+    console.log('Speech error:', e.error);
+    if (e.error !== 'no-speech') {
+      stopRecognition();
+    }
+  };
+
+  state.recognition.onend = () => {
+    if (state.isRecording) {
+      // Restart if still recording
+      try { state.recognition.start(); } catch(e) {}
+    }
+  };
+
+  try {
+    state.recognition.start();
+    state.isRecording = true;
+    updateMicUI(mode, true);
+  } catch(e) {
+    console.error('Speech start error:', e);
+  }
+}
+
+function stopRecognition() {
+  state.isRecording = false;
+  if (state.recognition) {
+    try { state.recognition.stop(); } catch(e) {}
+    state.recognition = null;
+  }
+  updateMicUI('read', false);
+  updateMicUI('qa', false);
+}
+
+function updateMicUI(mode, active) {
+  if (mode === 'read') {
+    const btn = document.getElementById('btnMicRead');
+    const status = document.getElementById('speechStatusRead');
+    btn.classList.toggle('recording', active);
+    if (!active && status) {
+      status.className = 'speech-status';
+      if (!readTranscript) status.textContent = 'マイクボタンを押して音読しよう';
+    }
+  } else {
+    const btn = document.getElementById('btnMicQA');
+    const status = document.getElementById('speechStatusQA');
+    btn.classList.toggle('recording', active);
+    if (!active && status) {
+      status.className = 'speech-status';
+      status.textContent = '';
+    }
+  }
+}
+
+function toggleSpeechQA() {
+  if (state.isRecording) {
+    stopRecognition();
+  } else {
+    startRecognition('qa');
+  }
+}
+
+// ============================================================
+// TEXT-TO-SPEECH
+// ============================================================
+function speak(text) {
+  if (!state.ttsSupported) return;
+  speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+
+  // Detect language
+  const isJapanese = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/.test(text);
+  utter.lang = isJapanese ? 'ja-JP' : 'en-US';
+  utter.rate = isJapanese ? 1.0 : 0.85;
+  utter.pitch = 1.0;
+
+  // Try to pick a good voice
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    const lang = utter.lang;
+    const preferred = voices.find(v => v.lang.startsWith(lang.split('-')[0]) && v.localService);
+    if (preferred) utter.voice = preferred;
+  }
+
+  speechSynthesis.speak(utter);
+}
+
+// ============================================================
+// STEP INDICATOR
+// ============================================================
+function renderStepIndicator(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  const totalDots = state.totalSteps;
+  const currentDot = state.currentStep - 1;
+  const sectionLabels = {3:'3級','p2':'準2級',2:'2級'};
+
+  let html = '';
+  for (let i = 0; i < totalDots; i++) {
+    let cls = 'step-dot';
+    if (i === currentDot) cls += ' active';
+    else if (i < currentDot) cls += ' done';
+    html += `<div class="${cls}"></div>`;
+  }
+  html += `<span class="step-label">ステップ ${state.currentStep}/${state.totalSteps}</span>`;
+  el.innerHTML = html;
+}
+
+// ============================================================
+// LOCAL STORAGE - HISTORY
+// ============================================================
+function getStorageKey() {
+  return 'eiken-interview-history';
+}
+
+function getHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(getStorageKey())) || [];
+  } catch { return []; }
+}
+
+function saveHistory(stars) {
+  const history = getHistory();
+  const gradeLabels = {3:'3級','p2':'準2級',2:'2級'};
+  history.unshift({
+    grade: gradeLabels[state.selectedGrade],
+    stars,
+    date: new Date().toLocaleDateString('ja-JP'),
+    setIndex: state.currentSetIndex
+  });
+  // Keep last 20
+  if (history.length > 20) history.length = 20;
+  localStorage.setItem(getStorageKey(), JSON.stringify(history));
+  setLastUsedIndex(state.selectedGrade, state.currentSetIndex);
+}
+
+function getLastUsedIndex(grade) {
+  try {
+    const data = JSON.parse(localStorage.getItem('eiken-interview-last')) || {};
+    return data[grade] ?? -1;
+  } catch { return -1; }
+}
+
+function setLastUsedIndex(grade, idx) {
+  try {
+    const data = JSON.parse(localStorage.getItem('eiken-interview-last')) || {};
+    data[grade] = idx;
+    localStorage.setItem('eiken-interview-last', JSON.stringify(data));
+  } catch {}
+}
+
+function renderHistory() {
+  const history = getHistory();
+  const section = document.getElementById('historySection');
+  const list = document.getElementById('historyList');
+
+  if (history.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = history.slice(0, 5).map(h => {
+    const starStr = '\u2605'.repeat(h.stars) + '\u2606'.repeat(5 - h.stars);
+    return `<div class="history-row">
+      <span>${h.grade}</span>
+      <span class="stars">${starStr}</span>
+      <span class="date">${h.date}</span>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// VOICE LOADING
+// ============================================================
+if (state.ttsSupported) {
+  speechSynthesis.onvoiceschanged = () => {};
+  // Pre-load voices
+  speechSynthesis.getVoices();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+init();
+</script>
+</body>
+</html>
