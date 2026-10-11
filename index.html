@@ -1390,10 +1390,58 @@ function toggleSpeechQA() {
 // ============================================================
 // TEXT-TO-SPEECH
 // ============================================================
-// 音声読み上げ。forceLang で言語を指定可能（'en' / 'ja'）
+// ── 音声キャッシュ ──
+const _voiceCache = { ja: null, en: null, ready: false };
+
+function pickVoice(lang) {
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return null;
+
+  if (lang === 'ja-JP') {
+    // macOS / iOS の高品質日本語音声を優先
+    const preferred = ['O-Ren', 'Kyoko', 'Otoya', 'Hattori'];
+    for (const name of preferred) {
+      const v = voices.find(v => v.name.includes(name));
+      if (v) return v;
+    }
+    // 名前で見つからなければ lang=ja-JP で探す
+    return voices.find(v => v.lang === 'ja-JP')
+        || voices.find(v => v.lang.startsWith('ja'))
+        || null;
+  }
+
+  // 英語
+  const preferred = ['Samantha', 'Daniel', 'Karen', 'Alex'];
+  for (const name of preferred) {
+    const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+    if (v) return v;
+  }
+  return voices.find(v => v.lang === 'en-US')
+      || voices.find(v => v.lang.startsWith('en'))
+      || null;
+}
+
+function ensureVoices() {
+  if (_voiceCache.ready) return;
+  _voiceCache.ja = pickVoice('ja-JP');
+  _voiceCache.en = pickVoice('en-US');
+  _voiceCache.ready = true;
+}
+
+// 音声が遅延ロードされるブラウザ対応
+if (typeof speechSynthesis !== 'undefined') {
+  speechSynthesis.onvoiceschanged = () => {
+    _voiceCache.ready = false;
+    ensureVoices();
+  };
+  ensureVoices();
+}
+
 function speak(text, forceLang) {
   if (!state.ttsSupported) return;
   speechSynthesis.cancel();
+  ensureVoices();
+
   const utter = new SpeechSynthesisUtterance(text);
 
   let lang;
@@ -1402,30 +1450,21 @@ function speak(text, forceLang) {
   } else if (forceLang === 'ja') {
     lang = 'ja-JP';
   } else {
-    // 自動判定
     const hasJP = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/.test(text);
     lang = hasJP ? 'ja-JP' : 'en-US';
   }
+
   utter.lang = lang;
   utter.rate = lang === 'ja-JP' ? 1.0 : 0.85;
   utter.pitch = 1.0;
 
-  const voices = speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    const prefix = lang.split('-')[0];
-    // ローカル音声を優先（より自然な発音）
-    const local = voices.find(v => v.lang.startsWith(prefix) && v.localService);
-    const any = voices.find(v => v.lang.startsWith(prefix));
-    if (local) utter.voice = local;
-    else if (any) utter.voice = any;
-  }
+  const cached = lang === 'ja-JP' ? _voiceCache.ja : _voiceCache.en;
+  if (cached) utter.voice = cached;
 
   speechSynthesis.speak(utter);
 }
 
-// 英語で読み上げ（面接官の質問用）
 function speakEN(text) { speak(text, 'en'); }
-// 日本語で読み上げ（面接官の指示用）
 function speakJA(text) { speak(text, 'ja'); }
 
 // ============================================================
@@ -1515,13 +1554,7 @@ function renderHistory() {
 }
 
 // ============================================================
-// VOICE LOADING
-// ============================================================
-if (state.ttsSupported) {
-  speechSynthesis.onvoiceschanged = () => {};
-  // Pre-load voices
-  speechSynthesis.getVoices();
-}
+// VOICE LOADING — handled by ensureVoices() above
 
 // ============================================================
 // INIT
